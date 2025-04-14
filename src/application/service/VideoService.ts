@@ -1,50 +1,42 @@
 import { VideoUseCase } from '../port/in/VideoUseCasePort';
 import { VideoRepository } from '../../domain/port/out/VideoRepositoryPort';
-import { VideoProcessor } from '../../domain/port/in/VideoProcessorPort';
 import { VideoUploadDTO } from '../dto/VideoUploadDTO';
 import { VideoResponseDTO } from '../dto/VideoResponseDTO';
-import { Video } from '../../domain/entity/Video';
 import { VideoMapper } from '../mapper/VideoMapper';
-import { uploadFile } from '../../infrastructure/storage/s3Simulator';
+import { videoQueue } from '../queue/VideoQueue';
+import { queueEvents } from '../../infrastructure/config/queue';
 
 export class VideoService implements VideoUseCase {
   constructor(
     private videoRepository: VideoRepository,
-    private videoProcessor: VideoProcessor,
-    private uploadDir: string // Directorio donde se guardarán los videos procesados
+    private uploadDir: string, 
   ) {}
 
   async uploadVideo(filePath: string, dto: VideoUploadDTO): Promise<VideoResponseDTO> {
-    // Se procesa el video (transcodificación y generación de miniatura)
-    const processed = await this.videoProcessor.processVideo(filePath, this.uploadDir);
+    const job = await videoQueue.add('process-video', {
+      filePath,
+      uploadDir: this.uploadDir,
+      metadata: dto
+    });
+  
+    job.waitUntilFinished(queueEvents).then((result: any) => {
+      console.log(`El video ${dto.title} se ha procesado correctamente.`);
+    }).catch((err: any) => {
+      console.error(`Hubo un error al procesar el video: ${err.message}`);
+    });
 
-    // Se simula la subida a S3 obteniendo URL para cada formato y la miniatura
-    const formatsUploaded = [];
-    for (const format of processed.formats) {
-      const url = await uploadFile(format.filePath);
-      formatsUploaded.push({ resolution: format.resolution, url });
-    }
-    const thumbnailUrl = await uploadFile(processed.thumbnail);
-
-    // Se crea la entidad de dominio Video (sin id; este se asignará en la persistencia)
-    const video = new Video(
-      null,
-      dto.title,
-      dto.description || '',
-      formatsUploaded,
-      thumbnailUrl,
-      new Date(),
-      dto.categories || [],
-      dto.tags || []
-    );
-
-    // Se guarda en el repositorio (MongoDB)
-    const savedVideo = await this.videoRepository.save(video);
-
-    // Se retorna el DTO de respuesta
-    return VideoMapper.toResponseDTO(savedVideo);
+    return {
+      id: 'pending',
+      title: dto.title,
+      description: dto.description || '',
+      formats: [],
+      thumbnailUrl: '',
+      createdAt: new Date(),
+      categories: dto.categories || [],
+      tags: dto.tags || []
+    };
   }
-
+  
   async getVideos(): Promise<VideoResponseDTO[]> {
     const videos = await this.videoRepository.findAll();
     return videos.map(VideoMapper.toResponseDTO);

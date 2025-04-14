@@ -26,7 +26,7 @@ const uploadDir = path.join(__dirname, '../../../uploads');
 const processor = new FFmpegProcessor();
 
 // Se crea la instancia del servicio, inyectando el repositorio, el procesador y el directorio
-const service = new VideoService(videoRepositoryImpl, processor, uploadDir);
+const service = new VideoService(videoRepositoryImpl, uploadDir);
 
 // Se instancia el controlador
 const controller = new VideoController(service);

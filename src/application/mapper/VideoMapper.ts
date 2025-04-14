@@ -9,7 +9,9 @@ export class VideoMapper {
       description: video.description,
       formats: video.formats,
       thumbnailUrl: video.thumbnailUrl,
-      createdAt: video.createdAt
+      createdAt: video.createdAt,
+      categories: video.categories,
+      tags:video.tags
     };
   }
 }
