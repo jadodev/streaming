@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h2>Video con cambio de resolución</h2>
+<select id="resolution">
+  <option value="http://localhost:3000/storage/1744402095436_480p.mp4">480p</option>
+  <option value="http://localhost:3000/storage/1744402095438_720p.mp4" selected>720p</option>
+  <option value="http://localhost:3000/storage/1744404875269_1080p.mp4">1080p</option>
+</select>
+
+<video id="videoPlayer" width="840" height="560" controls poster="http://localhost:3000/storage/1744404875269_thumbnail.png">
+  <source src="http://localhost:3000/storage/1744402095438_720p.mp4" type="video/mp4" />
+</video>
+
+<script>
+  const select = document.getElementById('resolution');
+  const video = document.getElementById('videoPlayer');
+
+  select.addEventListener('change', () => {
+    const newSrc = select.value;
+    video.querySelector('source').src = newSrc;
+    video.load();
+    video.play();
+  });
+</script>
+</body>
+</html>
