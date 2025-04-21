@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Grabación Local</title>
+  <style>
+    body { background:#111; color:#fff; font-family:sans-serif; text-align:center; padding-top:2rem }
+    video { width:50%; border:4px solid #4caf50; border-radius:8px; margin:1rem auto; }
+    button { margin:1rem; padding:.5rem 1rem; background:#4caf50; border:none; border-radius:4px; cursor:pointer }
+    #recordedVideo { display:none; }
+  </style>
+</head>
+<body>
+  <h1>Grabación Local</h1>
+  <video id="liveVideo" autoplay playsinline muted></video>
+  <div id="recordedVideoContainer">
+    <video id="recordedVideo" controls></video>
+  </div>
+  <button id="startBtn">Iniciar Grabación</button>
+  <button id="stopBtn" disabled>Detener Grabación</button>
+
+  <script>
+    let mediaStream;
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    const liveVideo = document.getElementById('liveVideo');
+    const recordedVideo = document.getElementById('recordedVideo');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+
+    startBtn.onclick = async () => {
+      try {
+        // Obtener acceso a cámara y micrófono
+        mediaStream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: true 
+        });
+        
+        // Mostrar video en vivo
+        liveVideo.srcObject = mediaStream;
+        // 
+        
+        // Configurar el MediaRecorder
+        mediaRecorder = new MediaRecorder(mediaStream, {
+          mimeType: 'video/webm; codecs=vp9'
+        });
+        
+        // Evento para recolectar los chunks de video
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+        
+        // Evento cuando se detiene la grabación
+        mediaRecorder.onstop = () => {
+          // Crear el blob de video
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const videoUrl = URL.createObjectURL(blob);
+          
+          // Mostrar el video grabado
+          recordedVideo.src = videoUrl;
+          recordedVideo.style.display = 'block';
+          liveVideo.style.display = 'none';
+          
+          // Limpiar para una nueva grabación
+          recordedChunks = [];
+        };
+        
+        // Iniciar grabación
+        mediaRecorder.start(100); // Guardar chunks cada 100ms
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        
+        console.log('Grabación iniciada');
+      } catch (error) {
+        console.error('Error al acceder a los dispositivos:', error);
+      }
+    };
+
+    stopBtn.onclick = () => {
+      // Detener la grabación
+      mediaRecorder.stop();
+      
+      // Detener los tracks de la cámara/micrófono
+      mediaStream.getTracks().forEach(track => track.stop());
+      
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      
+      console.log('Grabación detenida');
+    };
+  </script>
+</body>
+</html>

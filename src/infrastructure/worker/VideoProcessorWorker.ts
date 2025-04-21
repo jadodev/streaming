@@ -1,7 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../config/redisConnection';
 import { FFmpegProcessor } from '../processor/FFmpgProcessor';
-import { videoRepositoryImpl } from '../persistence/moongose/VideoRepository';
+import { videoRepositoryImpl } from '../persistence/repository/VideoRepository';
 import { uploadFile } from '../storage/s3Simulator';
 import { Video } from '../../domain/entity/Video';
 import { connectToDatabase } from '../config/moongose';
