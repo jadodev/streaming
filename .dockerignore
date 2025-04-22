@@ -1,0 +1,50 @@
+# .dockerignore
+
+# Ignora node_modules (se reinstalarán en la imagen)
+node_modules/
+
+# Ignora archivos de desarrollo y configuración local
+.env
+.env.local
+.env*.local
+
+# Ignora logs y carpetas de runtime
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+logs/
+
+# Ignora carpetas de IDE y editor
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Ignora archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Ignora la carpeta de build local (si existe)
+dist/
+build/
+out/
+
+# Ignora archivos de cobertura y tests
+coverage/
+*.test.js
+__tests__/
+
+# Ignora archivos HLS locales (se manejarán con volumen)
+hls_output/
+
+# Ignora archivos de configuración no necesarios
+docker-compose.override.yml
+docker-compose.debug.yml
+
+# Ignora archivos de documentación
+docs/
+*.md
