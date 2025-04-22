@@ -30,5 +30,4 @@ export class StreamController {
       res.status(500).json({ message: "Error al detener la transmisión" });
     }
   }
-  
 }

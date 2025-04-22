@@ -5,9 +5,10 @@ import fsPromises from "fs/promises";
 
 export class FFmpegStreamProcessorAdapter {
   private ffmpegProcesses: Map<string, ChildProcessWithoutNullStreams> = new Map();
-  private readonly EXTERNAL_STORAGE_PATH = "D:\\hls_output";
+  private readonly EXTERNAL_STORAGE_PATH = "C:\\temp\\hls_output";
 
   constructor() {
+    
     if (!fs.existsSync(this.EXTERNAL_STORAGE_PATH)) {
       fs.mkdirSync(this.EXTERNAL_STORAGE_PATH, { recursive: true });
     }
@@ -27,15 +28,18 @@ export class FFmpegStreamProcessorAdapter {
     const outputPath = path.join(sessionOutputPath, "playlist.m3u8");
 
     const ffmpegProcess = spawn("ffmpeg", [
-      "-f", "webm",
-      "-i", "pipe:0",
+      "-f", "flv",
+      "-i", `rtmp://localhost:1935/live/${sessionId}`,
       "-c:v", "libx264",
-      "-preset", "veryfast",
+      "-preset", "ultrafast",
+      "-tune", "zerolatency",
       "-c:a", "aac",
       "-f", "hls",
-      "-hls_time", "4",
-      "-hls_list_size", "6",
-      "-hls_flags", "delete_segments",
+      "-hls_time", "2",
+      "-hls_list_size", "4",
+      "-hls_flags", "delete_segments+split_by_time",
+      "-hls_segment_type", "mpegts",
+      "-hls_segment_filename", path.join(sessionOutputPath, "segment_%03d.ts"),
       outputPath
     ]);
 
@@ -79,7 +83,23 @@ export class FFmpegStreamProcessorAdapter {
   }
 
   async stop(sessionId: string): Promise<void> {
+    const ffmpegProcess = this.ffmpegProcesses.get(sessionId);
+    if (ffmpegProcess) {
+      try {
+        ffmpegProcess.stdin.write('q\n');        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        if (!ffmpegProcess.killed) {
+          ffmpegProcess.kill('SIGTERM');
+        }
+      } catch (err) {
+        console.error(`Error deteniendo FFmpeg: ${err}`);
+      } finally {
+        this.ffmpegProcesses.delete(sessionId);
+      }
+    }
     await this.cleanupSession(sessionId);
+    console.log("Sesión terminada correctamente");
   }
 
   private async cleanupSession(sessionId: string): Promise<void> {
@@ -89,7 +109,6 @@ export class FFmpegStreamProcessorAdapter {
       this.ffmpegProcesses.delete(sessionId);
     }
 
-    // Eliminar archivos de la sesión después de 1 minuto (ajustable)
     setTimeout(async () => {
       try {
         const sessionPath = path.join(this.EXTERNAL_STORAGE_PATH, sessionId);
@@ -98,6 +117,6 @@ export class FFmpegStreamProcessorAdapter {
       } catch (err) {
         console.error(`Error limpiando sesión ${sessionId}:`, err);
       }
-    }, 60000); // 60 segundos para permitir finalización de procesos
+    }, 6000);
   }
 }

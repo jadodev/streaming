@@ -3,6 +3,7 @@ export class StreamDto {
         public readonly id: string,
         public readonly streamKey: string,
         public readonly status: string,
-        public readonly startedAt: string
+        public readonly startedAt: string,
+        public readonly rtmpUrl: string
     ) {}
 }

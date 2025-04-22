@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Broadcaster</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        #status { margin: 15px 0; padding: 10px; border-radius: 4px; }
+        .active { background: #d4edda; }
+        .error { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Control de Transmisión</h1>
+    <button id="startBtn">Iniciar Transmisión</button>
+    <button id="stopBtn" disabled>Detener Transmisión</button>
+    <div id="status"></div>
+    <div id="obsConfig" style="margin-top: 20px; display: none;">
+        <h3>Configuración OBS</h3>
+        <p><strong>Servidor:</strong> <code>rtmp://localhost:1935/live</code></p>
+        <p><strong>Clave de stream:</strong> <code id="streamKey"></code></p>
+    </div>
+
+    <script>
+        const apiBaseUrl = 'http://localhost:3000';
+        let currentStreamId = null;
+
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            try {
+                updateStatus("Iniciando transmisión...");
+                
+                const response = await fetch(`${apiBaseUrl}/stream/start`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                const { id, streamKey, rtmpUrl } = await response.json();
+                currentStreamId = id;
+                
+                updateStatus(`Transmisión iniciada (ID: ${id})`, 'active');
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                
+                // Mostrar configuración OBS
+                document.getElementById('streamKey').textContent = streamKey;
+                document.getElementById('obsConfig').style.display = 'block';
+                console.log("URL para OBS:", rtmpUrl);
+                
+            } catch (error) {
+                updateStatus(`Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', async () => {
+            if (!currentStreamId) return;
+            
+            try {
+                updateStatus("Deteniendo transmisión...");
+                
+                const response = await fetch(`${apiBaseUrl}/stream/stop/${currentStreamId}`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                updateStatus(`Transmisión ${currentStreamId} detenida`);
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('obsConfig').style.display = 'none';
+                currentStreamId = null;
+                
+            } catch (error) {
+                updateStatus(`Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        });
+
+        function updateStatus(message, type = '') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = type;
+        }
+    </script>
+</body>
+</html>

@@ -7,7 +7,8 @@ export class StreamMapper {
         stream.getId(),
         stream.getStreamKey(),
         stream.getStatus(),
-        stream.getStartedAt().toISOString()
+        stream.getStartedAt().toISOString(),
+        `rtmp://localhost:1935/live/${stream.getStreamKey()}`
       );
     }
   

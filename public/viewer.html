@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #video { width: 100%; background: #000; }
+    </style>
+</head>
+<body>
+    <h1>Visualizador de Stream</h1>
+    <video id="video" controls autoplay></video>
+    <div>
+        <input type="text" id="streamId" placeholder="Ingrese ID del stream">
+        <button id="watchBtn">Ver Stream</button>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const streamIdInput = document.getElementById('streamId');
+        const watchBtn = document.getElementById('watchBtn');
+        let hls = null;
+
+        watchBtn.addEventListener('click', () => {
+            const streamId = streamIdInput.value.trim();
+            if (!streamId) return;
+
+            if (hls) {
+                hls.destroy();
+            }
+
+            if (Hls.isSupported()) {
+                hls = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    maxBufferLength: 1
+                });
+                hls.loadSource(`http://localhost:3000/hls/${streamId}/playlist.m3u8`);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = `http://localhost:8000/live/${streamId}/index.m3u8`;
+                video.addEventListener('loadedmetadata', () => {
+                    video.play();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
