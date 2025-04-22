@@ -1,27 +1,22 @@
-# Usa una imagen base con Node.js y FFmpeg
-FROM node:18-alpine
-
-# Instala FFmpeg y dependencias de compilación
-RUN apk add --no-cache ffmpeg python3 make g++
-
-# Establece el directorio de trabajo
-WORKDIR /app
-
-# Copia archivos de configuración de dependencias
-COPY package.json yarn.lock ./
+FROM node:20-alpine
 
 # Instala dependencias
+RUN apk add --no-cache ffmpeg python3 make g++
+
+WORKDIR /app
+
+# 1. Copia solo lo necesario para instalar dependencias
+COPY package.json yarn.lock tsconfig.json ./
+
+# 2. Instala dependencias
 RUN yarn install --frozen-lockfile
 
-# Copia todo el código fuente
+# 3. Copia TODO el código fuente
 COPY . .
 
-# Compila el proyecto (si es necesario)
+# 4. Compila TypeScript explícitamente
 RUN yarn build
 
-# Expone los puertos necesarios
-EXPOSE 3000
-EXPOSE 1935 
-EXPOSE 8000  
+EXPOSE 3000 1935 8000
 
 CMD ["yarn", "dev"]
