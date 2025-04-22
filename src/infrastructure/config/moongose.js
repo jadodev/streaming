@@ -18,7 +18,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 function connectToDatabase() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield mongoose_1.default.connect('mongodb://mongo:27017/videos');
+            yield mongoose_1.default.connect('mongodb://127.0.0.1:27017/videos');
             console.log('📦 Worker conectado a MongoDB');
         }
         catch (error) {

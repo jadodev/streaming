@@ -32,7 +32,7 @@ Thumbs.db
 dist/
 build/
 out/
-
+public/
 # Ignora archivos de cobertura y tests
 coverage/
 *.test.js

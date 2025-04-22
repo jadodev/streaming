@@ -25,6 +25,7 @@
         let currentStreamId = null;
 
         document.getElementById('startBtn').addEventListener('click', async () => {
+            event.preventDefault(); 
             try {
                 updateStatus("Iniciando transmisión...");
                 

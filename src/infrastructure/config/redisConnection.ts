@@ -1,6 +1,6 @@
 import { Redis } from 'ioredis';
 
-const redisHost = 'redis';
+const redisHost = 'localhost';
 const redisPort = 6379;
 
 export const redisConnection = new Redis({
