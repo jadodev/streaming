@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const StreamController_1 = require("../controller/StreamController");
+const StreamApplicationService_1 = require("../../application/service/StreamApplicationService");
+const StreamDomainService_1 = require("../../domain/service/StreamDomainService");
+const StreamRepository_1 = require("../persistence/repository/StreamRepository");
+const FfmpeStreamProcessAdapter_1 = require("../ffmpeg/FfmpeStreamProcessAdapter");
+const routerStream = (0, express_1.Router)();
+const repository = new StreamRepository_1.StreamRepository();
+const domainService = new StreamDomainService_1.StreamDomainService(repository);
+const ffmpegAdapter = new FfmpeStreamProcessAdapter_1.FFmpegStreamProcessorAdapter();
+const applicationService = new StreamApplicationService_1.StreamApplicationService(domainService, ffmpegAdapter);
+const controller = new StreamController_1.StreamController(applicationService);
+routerStream.post("/stream/start", (req, res) => controller.startStream(req, res));
+routerStream.post("/stream/stop/:id", (req, res) => controller.stopStream(req, res));
+exports.default = routerStream;
